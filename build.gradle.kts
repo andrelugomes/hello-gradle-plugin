@@ -1,11 +1,27 @@
+import com.github.andrelugomes.buildsrc.BuildSrcTask
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath(files("standalone-task/build/libs/standalone-task-1.0.0-SNAPSHOT.jar"))
+    }
+}
+
 plugins {
     kotlin("jvm") version "1.6.20"
+
+    id("com.github.andrelugomes.file-analizer") version "1.0.0-SNAPSHOT"
 }
 
 group = "com.github.andrelugomes"
 version = "1.0.0-SNAPSHOT"
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -15,69 +31,53 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.5.2")
 }
 
-abstract class IncrementalTaskExtention {
-    var skip: Boolean = false
+//Simple Task
+tasks.register("hello") {
+    println("Hello World!")
 }
 
-abstract class IncrementalTask : DefaultTask() {
-
-    @get:Incremental
-    @get:PathSensitive(PathSensitivity.NAME_ONLY)
-    @get:InputDirectory
-    abstract val input: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val output: DirectoryProperty
-
+//Greeting Task
+/*abstract class GreetingTask : DefaultTask() {
+    @TaskAction
+    fun greet() {
+        println("hello from GreetingTask")
+    }
+}*/
+abstract class GreetingTask : DefaultTask() {
     @get:Input
-    @set:Option(option = "skip", description = "Skip task")
-    var skip: Boolean = false
+    abstract val greeting: Property<String>
 
-    private val extension = project.extensions.findByName("incremental") as IncrementalTaskExtention
-
-    private val pattern = """(Lorem|Ipsum)""".toRegex()
+    init {
+        greeting.convention("hello from GreetingTask")
+    }
 
     @TaskAction
-    fun execute(inputChanges: InputChanges) {
-        println(
-            if (inputChanges.isIncremental) "Executing incrementally"
-            else "Executing non-incrementally"
-        )
-
-        println("skip=${skip} | extension.skip=${extension.skip}")
-        if (!(skip || extension.skip)) {
-            inputChanges.getFileChanges(input).forEach { change ->
-                if (change.fileType == FileType.DIRECTORY) return@forEach
-
-                val result = pattern.find(change.file.readText())
-                if (result != null) {
-                    println("ERROR: ${change.normalizedPath}")
-                    println(change.file.readText())
-
-                    throw GradleException("Incremental Task found a file that matches-> ${change.normalizedPath}")
-                }
-
-                println("${change.changeType}: ${change.normalizedPath}")
-                val targetFile = output.file(change.normalizedPath).get().asFile
-                if (change.changeType == ChangeType.REMOVED) {
-                    targetFile.delete()
-                } else {
-                    targetFile.writeText(change.file.readText())
-                }
-            }
-        } else {
-            println("Task Skiped!")
-        }
+    fun greet() {
+        println(greeting.get())
     }
 }
+tasks.register<GreetingTask>("greeting")
 
-tasks.register<IncrementalTask>("incremental") {
+/*tasks.register<GreetingTask>("greeting") {
+    greeting.set("greetings from GreetingTask Overrided")
+}*/
+
+// From buildSrc
+tasks.register<BuildSrcTask>("greeting-from-buildsrc")
+
+// From standalone-task project/module
+tasks.register<com.github.andrelugomes.task.StandAloneTask>("greeting-from-standalone-task") // registered in module
+
+
+
+// From Plugin
+tasks.fileAnalizerTask {
     input.set(file("$rootDir/src/main/resources/files"))
     output.set(file("$buildDir/outputs/files"))
-    //skip = true
 }
-project.extensions.create("incremental", IncrementalTaskExtention::class.java)
+// Extention
+fileAnalizer {
+    skip = false
+}
 
-project.extensions.getByName<IncrementalTaskExtention>("incremental").apply {
-    skip = true
-}
+
