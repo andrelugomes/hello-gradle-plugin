@@ -56,11 +56,11 @@ abstract class GreetingTask : DefaultTask() {
         println(greeting.get())
     }
 }
-tasks.register<GreetingTask>("greeting")
+//tasks.register<GreetingTask>("greeting")
 
-/*tasks.register<GreetingTask>("greeting") {
+tasks.register<GreetingTask>("greeting") {
     greeting.set("greetings from GreetingTask Overrided")
-}*/
+}
 
 // From buildSrc
 tasks.register<BuildSrcTask>("greeting-from-buildsrc")
@@ -77,7 +77,7 @@ tasks.fileAnalizerTask {
 }
 // Extention
 fileAnalizer {
-    skip = false
+    skip = true
 }
 
 

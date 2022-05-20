@@ -5,16 +5,16 @@
 ### From build.gradle.kts
 
 ```shell
-/gradlew -q hello
+./gradlew -q hello
 ```
 
 ```shell
-/gradlew -q greeting
+./gradlew -q greeting
 ```
 
 ### From buildSrc
 ```shell
-/gradlew -q greeting-from-buildsrc
+./gradlew -q greeting-from-buildsrc
 ```
 
 ### From standalone project/module
@@ -25,7 +25,7 @@ dependencies {
 ```
 
 ```shell
-/gradlew -q greeting-from-standalone-task
+./gradlew -q greeting-from-standalone-task
 ```
 
 ![img.png](img.png)
@@ -37,7 +37,7 @@ dependencies {
 - Extention
 
 ```shell
-./gradle -q fileAnalizerTask
+./gradlew -q fileAnalizerTask
 ```
 
 ### Options
